@@ -34,6 +34,7 @@ attr = [8, 9, 15, 20]
 y_train = np.array(y_train)
 y_train = y_train.astype(np.int)
 y_mini = y_train[:, attr]
+np.save('./data/y_mini_attr', y_mini)
 
 def visualize(data, index):    
     #print(data[index])
