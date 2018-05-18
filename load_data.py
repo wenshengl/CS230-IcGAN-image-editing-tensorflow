@@ -5,6 +5,7 @@ import scipy
 import scipy.misc
 import matplotlib.pyplot as plt
 
+
 data_dir = os.path.join("./data", "mini_img/")
 filenames = os.listdir(data_dir)
 
