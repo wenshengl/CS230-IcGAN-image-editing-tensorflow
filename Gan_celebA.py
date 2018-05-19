@@ -343,14 +343,15 @@ class Gan_celebA(object):
 
             print (label_y)
 
-            save_images(output_image , [8 , 8] , './{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
-            #save_images_single(output_image, './{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
+            print (output_image.shape)
+            #save_images(output_image[0] , [1 , 1] , './{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
+            save_images_single(output_image[0], './{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
 
-            save_images(realbatch_array , [8 , 8] , './{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))
-            # save_images_single(realbatch_array, './{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))
+            #save_images(realbatch_array[0] , [1 , 1] , './{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))
+            save_images_single(realbatch_array[0], './{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))
 
-            gen_img = cv2.imread('./{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0), 0)
-            real_img = cv2.imread('./{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0), 0)
+            gen_img = cv2.imread('./{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
+            real_img = cv2.imread('./{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))
 
 
             cv2.imshow("test_EGan", gen_img)
