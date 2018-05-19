@@ -19,12 +19,19 @@ FLAGS = flags.FLAGS
 
 
 if __name__ == "__main__":
-
-    root_log_dir = "/tmp/logs/mnist_test"
-    root_checkpoint_dir = "/tmp/gan_model/gan_model.ckpt"
-    encode_z_checkpoint_dir = "/tmp/encode_z_model/encode_model.ckpt"
-    encode_y_checkpoint_dir = "/tmp/encode_y_model/encode_model.ckpt"
-    sample_path = "sample/mnist_gan"
+    celebA_FLAG = FLAGS.celebA
+    if celebA_FLAG == 0:
+        root_log_dir = "/tmp/logs/mnist_test"
+        root_checkpoint_dir = "/tmp/gan_model/gan_model.ckpt"
+        encode_z_checkpoint_dir = "/tmp/encode_z_model/encode_model.ckpt"
+        encode_y_checkpoint_dir = "/tmp/encode_y_model/encode_model.ckpt"
+        sample_path = "sample/mnist_gan"
+    else:
+        root_log_dir = "/tmp/logs/celebA_test"
+        root_checkpoint_dir = "/tmp/gan_model/gan_model_celebA.ckpt"
+        encode_z_checkpoint_dir = "/tmp/encode_z_model/encode_model_celebA.ckpt"
+        encode_y_checkpoint_dir = "/tmp/encode_y_model/encode_model_celebA.ckpt"
+        sample_path = "sample/celebA_gan"
 
     OPER_FLAG = FLAGS.OPER_FLAG
 
@@ -67,10 +74,6 @@ if __name__ == "__main__":
     mkdir_p(sample_path)
     mkdir_p(encode_z_checkpoint_dir)
     mkdir_p(encode_y_checkpoint_dir)
-
-
-
-    celebA_FLAG = FLAGS.celebA
 
     if celebA_FLAG == 0:
         batch_size = 64
