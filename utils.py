@@ -22,9 +22,9 @@ class celebA(object):
     def __init__(self):
 
         self.dataname = "celebA"
-        self.dims = 218 * 178
-        self.shape = [218, 178, 3]
-        self.image_size = 218
+        self.dims = 28 * 28
+        self.shape = [28, 28, 3]
+        self.image_size = 28
 
     def load_celebA(self):
 
@@ -99,6 +99,9 @@ def get_image(image_path, is_grayscale=False):
 def save_images(images, size, image_path):
     return imsave(inverse_transform(images), size, image_path)
 
+def save_images_single(image, image_path):
+    return scipy.misc.imsave(image_path, image)
+
 def imread(path, is_grayscale=False):
     if (is_grayscale):
         return scipy.misc.imread(path, flatten=True).astype(np.float)
@@ -167,16 +170,18 @@ def sample_label():
     num = 64
     label_vector = np.zeros((num , 10), dtype=np.float)
     for i in range(0 , num):
-        label_vector[i , i/8] = 1.0
+        label_vector[i , i//8] = 1.0
 
     return label_vector
 
-def sample_label():
+def sample_label_celebA():
 
-    num = 64
-    label_vector = np.zeros((num, 10), dtype=np.float)
+    num = 1
+    feature = 4
+    label_vector = np.zeros((num, feature), dtype=np.float)
     for i in range(0, num):
-        label_vector[i, i / 8] = 1.0
+        for j in range(0, feature):
+            label_vector[i, j] = 0
 
     return label_vector
 
