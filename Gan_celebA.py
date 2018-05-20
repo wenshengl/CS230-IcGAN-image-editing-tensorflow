@@ -36,7 +36,7 @@ class Gan_celebA(object):
         #self.output_dist= MeanBernoulli(28*28)
         self.channel = 3
         # number of attributes
-        self.y_dim = 4
+        self.y_dim = 40
 
         self.output_size = celebA().image_size
         self.build_model = build_model_flag
