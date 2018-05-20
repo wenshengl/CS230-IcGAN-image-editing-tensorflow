@@ -176,7 +176,7 @@ def sample_label():
 
 def sample_label_celebA():
 
-    num = 1
+    num = 128
     feature = 4
     label_vector = np.zeros((num, feature), dtype=np.float)
     for i in range(0, num):

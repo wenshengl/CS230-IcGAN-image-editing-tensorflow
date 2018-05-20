@@ -332,7 +332,7 @@ class Gan_celebA(object):
             self.saver_z.restore(sess, self.encode_z_model)
             self.saver_y.restore(sess, self.encode_y_model)
 
-            realbatch_array, _ = celebA.getNextBatch(self.ds_train, self.label_y, 0, 10,
+            realbatch_array, _ = celebA.getNextBatch(self.ds_train, self.label_y, 0, 1,
                                                         self.batch_size)
             print('realbatch_array', realbatch_array.shape)
 
@@ -344,11 +344,11 @@ class Gan_celebA(object):
             print (label_y)
 
             print (output_image.shape)
-            #save_images(output_image[0] , [1 , 1] , './{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
-            save_images_single(output_image[0], './{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
+            #save_images(output_image , [10 , 10] , './{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
+            save_images_single(output_image[2], './{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
 
-            #save_images(realbatch_array[0] , [1 , 1] , './{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))
-            save_images_single(realbatch_array[0], './{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))
+            #save_images(realbatch_array , [10 , 10] , './{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))
+            save_images_single(realbatch_array[2], './{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))
 
             gen_img = cv2.imread('./{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
             real_img = cv2.imread('./{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))

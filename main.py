@@ -88,8 +88,8 @@ if __name__ == "__main__":
 
 
     else: 
-        batch_size = 1
-        sample_size = 512
+        batch_size = 128
+        sample_size = 100
         print("cnm")
         data, label = celebA().load_celebA()
         print('nmb')
