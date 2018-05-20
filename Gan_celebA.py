@@ -5,6 +5,7 @@ from utils import save_images
 from utils import sample_label, sample_label_celebA
 from utils import save_images_single
 import numpy as np
+import matplotlib.pyplot as plt
 import cv2
 
 
@@ -153,6 +154,10 @@ class Gan_celebA(object):
     #do train
     def train(self):
 
+        # Used for plot loss curve
+        train_D_loss = [];
+        train_G_loss = [];
+
         opti_D = tf.train.AdamOptimizer(learning_rate=self.learning_rate_dis, beta1=0.5).minimize(self.loss , var_list=self.d_vars)
         opti_G = tf.train.AdamOptimizer(learning_rate=self.learning_rate_gen, beta1=0.5).minimize(self.G_fake_loss, var_list=self.g_vars)
 
@@ -202,12 +207,27 @@ class Gan_celebA(object):
                         sample_images = sess.run(self.fake_images ,feed_dict={self.z:batch_z, self.y:sample_label_celebA()})
 
                         #save_images(sample_images[0:64] , [8, 8], './{}/train_{:02d}_{:04d}.png'.format(self.sample_path, e, step))
-                        save_images_single(sample_images[0], './{}/train_{:02d}_{:04d}.png'.format(self.sample_path, e, step))
+                        save_images(sample_images[0:128] , [16, 8], './{}/train_{:02d}_{:04d}.png'.format(self.sample_path, e, step))
+
+                        #save_images_single(sample_images[0], './{}/train_{:02d}_{:04d}.png'.format(self.sample_path, e, step))
                         #Save the model
                         self.saver.save(sess , self.model_path)
 
                 e += 1
                 batch_num = 0
+
+                # #list of D loss curve
+                #train_D_loss.append(D_loss)
+                # #list of G loss curve
+                #train_G_loss.append(fake_loss)
+
+            # plot D-loss and G-loss
+            # plt.plot(train_D_loss, label="D")
+            # plt.plot(train_G_loss, label="G")
+            # plt.legend()
+            # plt.xlabel("epoch")
+            # plt.ylabel("loss")
+            # plt.show()
 
             save_path = self.saver.save(sess , self.model_path)
             print ("Model saved in file: %s" % save_path)
@@ -216,6 +236,9 @@ class Gan_celebA(object):
 
 
     def train_ez(self):
+
+        train_ez_loss = []
+        ez_loss = None
 
         opti_EZ = tf.train.AdamOptimizer(learning_rate = 0.01, beta1 = 0.5).minimize(self.loss_z,
                                                                                       var_list=self.enz_vars)
@@ -263,13 +286,29 @@ class Gan_celebA(object):
                         #             './{}/train_{:02d}_{:04d}.png'.format(self.sample_path, e, step))
                         self.saver_z.save(sess, self.encode_z_model)
 
+
+
                 e += 1
                 batch_num = 0
+                
+                # #plot ez loss
+                #train_ez_loss.append(ez_loss)
+
+
+            # #plot ez-loss
+            # plt.plot(train_ez_loss, label="encoder_z")
+            # plt.legend()
+            # plt.xlabel("epoch")
+            # plt.ylabel("loss")
+            # plt.show()
 
             save_path = self.saver_z.save(sess, self.encode_z_model)
             print ("Model saved in file: %s" % save_path)
 
     def train_ey(self):
+
+        train_ey_loss = []
+        ey_loss = None
 
         opti_EY = tf.train.AdamOptimizer(learning_rate=0.001, beta1=0.5).minimize(self.loss_y,
                                                                                  var_list=self.eny_vars)
@@ -317,6 +356,16 @@ class Gan_celebA(object):
                 e += 1
                 batch_num = 0
 
+                # #plot ey_loss
+                train_ey_loss.append(ey_loss)
+
+            #plot ez-loss
+            plt.plot(train_ey_loss, label="encoder_y")
+            plt.legend()
+            plt.xlabel("epoch")
+            plt.ylabel("loss")
+            plt.show()
+
             save_path = self.saver_y.save(sess, self.encode_y_model)
             print ("Encode Y Model saved in file: %s" % save_path)
 
@@ -344,11 +393,11 @@ class Gan_celebA(object):
             print (label_y)
 
             print (output_image.shape)
-            #save_images(output_image , [10 , 10] , './{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
-            save_images_single(output_image[2], './{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
+            save_images(output_image[80:84] , [2, 2] , './{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
+            #save_images_single(output_image[10], './{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
 
-            #save_images(realbatch_array , [10 , 10] , './{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))
-            save_images_single(realbatch_array[2], './{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))
+            save_images(realbatch_array[80:84] , [2 , 2] , './{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))
+            #save_images_single(realbatch_array[10], './{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))
 
             gen_img = cv2.imread('./{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
             real_img = cv2.imread('./{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))
