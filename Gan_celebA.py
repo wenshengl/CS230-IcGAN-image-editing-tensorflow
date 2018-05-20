@@ -217,17 +217,17 @@ class Gan_celebA(object):
                 batch_num = 0
 
                 # #list of D loss curve
-                #train_D_loss.append(D_loss)
+                train_D_loss.append(D_loss)
                 # #list of G loss curve
-                #train_G_loss.append(fake_loss)
+                train_G_loss.append(fake_loss)
 
-            # plot D-loss and G-loss
-            # plt.plot(train_D_loss, label="D")
-            # plt.plot(train_G_loss, label="G")
-            # plt.legend()
-            # plt.xlabel("epoch")
-            # plt.ylabel("loss")
-            # plt.show()
+            #plot D-loss and G-loss
+            plt.plot(train_D_loss, label="D")
+            plt.plot(train_G_loss, label="G")
+            plt.legend()
+            plt.xlabel("epoch")
+            plt.ylabel("loss")
+            plt.show()
 
             save_path = self.saver.save(sess , self.model_path)
             print ("Model saved in file: %s" % save_path)
@@ -393,10 +393,10 @@ class Gan_celebA(object):
             print (label_y)
 
             print (output_image.shape)
-            save_images(output_image[80:84] , [2, 2] , './{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
+            save_images(output_image[0:16] , [4, 4] , './{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
             #save_images_single(output_image[10], './{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
 
-            save_images(realbatch_array[80:84] , [2 , 2] , './{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))
+            save_images(realbatch_array[0:16] , [4 , 4] , './{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))
             #save_images_single(realbatch_array[10], './{}/test{:02d}_{:04d}_r.png'.format(self.sample_path , 0, 0))
 
             gen_img = cv2.imread('./{}/test{:02d}_{:04d}.png'.format(self.sample_path , 0, 0))
