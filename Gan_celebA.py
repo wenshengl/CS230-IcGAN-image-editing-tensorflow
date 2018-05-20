@@ -207,7 +207,7 @@ class Gan_celebA(object):
                         sample_images = sess.run(self.fake_images ,feed_dict={self.z:batch_z, self.y:sample_label_celebA()})
 
                         #save_images(sample_images[0:64] , [8, 8], './{}/train_{:02d}_{:04d}.png'.format(self.sample_path, e, step))
-                        save_images(sample_images[0:128] , [16, 8], './{}/train_{:02d}_{:04d}.png'.format(self.sample_path, e, step))
+                        save_images(sample_images[0:64] , [8, 8], './{}/train_{:02d}_{:04d}.png'.format(self.sample_path, e, step))
 
                         #save_images_single(sample_images[0], './{}/train_{:02d}_{:04d}.png'.format(self.sample_path, e, step))
                         #Save the model
