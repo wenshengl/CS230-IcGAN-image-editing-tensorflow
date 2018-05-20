@@ -12,7 +12,7 @@ def mkdir_p(path):
         os.makedirs(path)
     except OSError as exc:  # Python >2.5
         if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
+            print('Path already exists.')
         else:
             raise
 
@@ -28,8 +28,8 @@ class celebA(object):
 
     def load_celebA(self):
 
-        data = np.load('./data/mini_img/X.npy')
-        label = np.load('./data/y_mini_attr.npy')
+        data = np.load('./data/celebA_img/X_8192.npy')
+        label = np.load('./data/y_8192.npy')
 
         return data, label
 
@@ -176,7 +176,7 @@ def sample_label():
 
 def sample_label_celebA():
 
-    num = 128
+    num = 64
     feature = 4
     label_vector = np.zeros((num, feature), dtype=np.float)
     for i in range(0, num):
