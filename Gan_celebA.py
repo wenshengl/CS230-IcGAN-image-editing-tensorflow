@@ -357,14 +357,14 @@ class Gan_celebA(object):
                 batch_num = 0
 
                 # #plot ey_loss
-                train_ey_loss.append(ey_loss)
+                #train_ey_loss.append(ey_loss)
 
-            #plot ez-loss
-            plt.plot(train_ey_loss, label="encoder_y")
-            plt.legend()
-            plt.xlabel("epoch")
-            plt.ylabel("loss")
-            plt.show()
+            # # #plot ez-loss
+            # plt.plot(train_ey_loss, label="encoder_y")
+            # plt.legend()
+            # plt.xlabel("epoch")
+            # plt.ylabel("loss")
+            # plt.show()
 
             save_path = self.saver_y.save(sess, self.encode_y_model)
             print ("Encode Y Model saved in file: %s" % save_path)
