@@ -6,6 +6,7 @@ import datetime
 from  utils import mkdir_p
 from utils import MnistData, celebA
 from Gan import Gan
+from Gan_celebA import Gan_celebA
 import numpy as np
 
 flags = tf.app.flags
@@ -16,15 +17,25 @@ flags.DEFINE_integer("celebA", 1, 'Choose celebA dataset')
 
 FLAGS = flags.FLAGS
 
-if __name__ == "__main__":
 
-    root_log_dir = "/tmp/logs/mnist_test"
-    root_checkpoint_dir = "/tmp/gan_model/gan_model.ckpt"
-    encode_z_checkpoint_dir = "/tmp/encode_z_model/encode_model.ckpt"
-    encode_y_checkpoint_dir = "/tmp/encode_y_model/encode_model.ckpt"
-    sample_path = "sample/mnist_gan"
+if __name__ == "__main__":
+    celebA_FLAG = FLAGS.celebA
+    if celebA_FLAG == 0:
+        root_log_dir = "/tmp/logs/mnist_test"
+        root_checkpoint_dir = "/tmp/gan_model/gan_model.ckpt"
+        encode_z_checkpoint_dir = "/tmp/encode_z_model/encode_model.ckpt"
+        encode_y_checkpoint_dir = "/tmp/encode_y_model/encode_model.ckpt"
+        sample_path = "sample/mnist_gan"
+    else:
+        root_log_dir = "/tmp/logs/celebA_test"
+        root_checkpoint_dir = "/tmp/gan_model/gan_model_celebA.ckpt"
+        encode_z_checkpoint_dir = "/tmp/encode_z_model/encode_model_celebA.ckpt"
+        encode_y_checkpoint_dir = "/tmp/encode_y_model/encode_model_celebA.ckpt"
+        sample_path = "sample/celebA_gan"
 
     OPER_FLAG = FLAGS.OPER_FLAG
+
+
 
     if OPER_FLAG == 0:
 
@@ -45,11 +56,11 @@ if __name__ == "__main__":
     now = datetime.datetime.now(dateutil.tz.tzlocal())
     timestamp = now.strftime('%Y_%m_%d_%H_%M_%S')
 
-    batch_size = 64
+    # batch_size = 1
     max_epoch = 20
 
     #for mnist train 62 + 2 + 10
-    sample_size = 64
+    # sample_size = 512
     dis_learn_rate = 0.0002
     gen_learn_rate = 0.0002
 
@@ -58,23 +69,33 @@ if __name__ == "__main__":
     log_dir = os.path.join(root_log_dir, exp_name)
     checkpoint_dir = os.path.join(root_checkpoint_dir, exp_name)
 
+    print('Creating directory...')
     mkdir_p(log_dir)
     mkdir_p(checkpoint_dir)
     mkdir_p(sample_path)
     mkdir_p(encode_z_checkpoint_dir)
     mkdir_p(encode_y_checkpoint_dir)
 
-    data, label = celebA().load_celebA()
-    print (data.shape)
-
-    celebA = FLAGS.celebA
-
-    if celebA == 0:
+    if celebA_FLAG == 0:
+        batch_size = 64
+        sample_size = 64
         print ('Training MNIST dataset:')
         data , label = MnistData().load_mnist()
+        infoGan = Gan(batch_size=batch_size, max_epoch=max_epoch, build_model_flag = build_model_flag,
+                      model_path=root_checkpoint_dir, encode_z_model=encode_z_checkpoint_dir,encode_y_model=encode_y_checkpoint_dir,
+                      data=data,label=label, extend_value=FLAGS.extend,
+                      network_type="mnist", sample_size=sample_size,
+                      sample_path=sample_path , log_dir = log_dir , gen_learning_rate=gen_learn_rate, dis_learning_rate=dis_learn_rate , info_reg_coeff=1.0)
 
 
-    infoGan = Gan(batch_size=batch_size, max_epoch=max_epoch, build_model_flag = build_model_flag,
+    else: 
+        batch_size = 64
+        sample_size = 100
+
+        data, label = celebA().load_celebA()
+
+        print (data.shape)
+        infoGan = Gan_celebA(batch_size=batch_size, max_epoch=max_epoch, build_model_flag = build_model_flag,
                       model_path=root_checkpoint_dir, encode_z_model=encode_z_checkpoint_dir,encode_y_model=encode_y_checkpoint_dir,
                       data=data,label=label, extend_value=FLAGS.extend,
                       network_type="mnist", sample_size=sample_size,
@@ -84,22 +105,22 @@ if __name__ == "__main__":
 
     if OPER_FLAG == 0:
 
-        print "Training Gan"
+        print ("Training Gan")
         infoGan.train()
 
     elif OPER_FLAG == 1:
 
-        print "Training encode for z"
+        print ("Training encode for z")
         infoGan.train_ez()
 
     elif OPER_FLAG == 2:
 
-        print "Training encode for Y"
+        print ("Training encode for Y")
         infoGan.train_ey()
 
     else:
 
-        print "This is Test"
+        print ("This is Test")
         infoGan.test()
 
 
