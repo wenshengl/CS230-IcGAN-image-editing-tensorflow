@@ -69,6 +69,7 @@ if __name__ == "__main__":
     log_dir = os.path.join(root_log_dir, exp_name)
     checkpoint_dir = os.path.join(root_checkpoint_dir, exp_name)
 
+    print('Creating directory...')
     mkdir_p(log_dir)
     mkdir_p(checkpoint_dir)
     mkdir_p(sample_path)
@@ -88,11 +89,11 @@ if __name__ == "__main__":
 
 
     else: 
-        batch_size = 128
+        batch_size = 64
         sample_size = 100
-        print("cnm")
+
         data, label = celebA().load_celebA()
-        print('nmb')
+
         print (data.shape)
         infoGan = Gan_celebA(batch_size=batch_size, max_epoch=max_epoch, build_model_flag = build_model_flag,
                       model_path=root_checkpoint_dir, encode_z_model=encode_z_checkpoint_dir,encode_y_model=encode_y_checkpoint_dir,
