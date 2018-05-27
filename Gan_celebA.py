@@ -36,7 +36,7 @@ class Gan_celebA(object):
         #self.output_dist= MeanBernoulli(28*28)
         self.channel = 3
         # number of attributes
-        self.y_dim = 40
+        self.y_dim = 4
 
         self.output_size = celebA().image_size
         self.build_model = build_model_flag
@@ -192,10 +192,8 @@ class Gan_celebA(object):
                     _,summary_str = sess.run([opti_D, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
                     summary_writer.add_summary(summary_str , step)
                     #optimizaiton G
-                    for i in range(8):
-                        _,summary_str = sess.run([opti_G, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
-                        summary_writer.add_summary(summary_str , step)
-
+                    _,summary_str = sess.run([opti_G, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
+                    summary_writer.add_summary(summary_str , step)
                     batch_num += 1
 
                     if step%1 ==0:
@@ -209,7 +207,7 @@ class Gan_celebA(object):
                         sample_images = sess.run(self.fake_images ,feed_dict={self.z:batch_z, self.y:sample_label_celebA()})
 
                         #save_images(sample_images[0:64] , [8, 8], './{}/train_{:02d}_{:04d}.png'.format(self.sample_path, e, step))
-                        save_images(sample_images[0:64] , [8, 8], './{}/train_{:02d}_{:04d}.png'.format(self.sample_path, e, step))
+                        save_images(sample_images[0:128] , [16, 8], './{}/train_{:02d}_{:04d}.png'.format(self.sample_path, e, step))
 
                         #save_images_single(sample_images[0], './{}/train_{:02d}_{:04d}.png'.format(self.sample_path, e, step))
                         #Save the model
