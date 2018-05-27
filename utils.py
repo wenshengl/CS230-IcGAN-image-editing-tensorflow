@@ -29,7 +29,7 @@ class celebA(object):
     def load_celebA(self):
 
         data = np.load('./data/celebA_img/X_8192.npy')
-        label = np.load('./data/y_8192.npy')
+        label = np.load('./data/y40_8192.npy')
 
         return data, label
 
@@ -177,7 +177,7 @@ def sample_label():
 def sample_label_celebA():
 
     num = 64
-    feature = 4
+    feature = 40
     label_vector = np.zeros((num, feature), dtype=np.float)
     for i in range(0, num):
         for j in range(0, feature):

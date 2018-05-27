@@ -19,19 +19,25 @@ FLAGS = flags.FLAGS
 
 
 if __name__ == "__main__":
+
+    now = datetime.datetime.now(dateutil.tz.tzlocal())
+    timestamp = now.strftime('%Y_%m_%d_%H_%M_%S')
+
     celebA_FLAG = FLAGS.celebA
     if celebA_FLAG == 0:
-        root_log_dir = "/tmp/logs/mnist_test"
+        root_log_dir = "./tmp/logs/mnist_test"
         root_checkpoint_dir = "/tmp/gan_model/gan_model.ckpt"
         encode_z_checkpoint_dir = "/tmp/encode_z_model/encode_model.ckpt"
         encode_y_checkpoint_dir = "/tmp/encode_y_model/encode_model.ckpt"
         sample_path = "sample/mnist_gan"
+        exp_name = "mnist_%s" % timestamp
     else:
-        root_log_dir = "/tmp/logs/celebA_test"
+        root_log_dir = "./tmp/logs/celebA_test"
         root_checkpoint_dir = "/tmp/gan_model/gan_model_celebA.ckpt"
         encode_z_checkpoint_dir = "/tmp/encode_z_model/encode_model_celebA.ckpt"
         encode_y_checkpoint_dir = "/tmp/encode_y_model/encode_model_celebA.ckpt"
         sample_path = "sample/celebA_gan"
+        exp_name = "celebA_%s" % timestamp
 
     OPER_FLAG = FLAGS.OPER_FLAG
 
@@ -53,8 +59,6 @@ if __name__ == "__main__":
 
         build_model_flag = 3
 
-    now = datetime.datetime.now(dateutil.tz.tzlocal())
-    timestamp = now.strftime('%Y_%m_%d_%H_%M_%S')
 
     # batch_size = 1
     max_epoch = 20
@@ -64,7 +68,6 @@ if __name__ == "__main__":
     dis_learn_rate = 0.0002
     gen_learn_rate = 0.0002
 
-    exp_name = "mnist_%s" % timestamp
 
     log_dir = os.path.join(root_log_dir, exp_name)
     checkpoint_dir = os.path.join(root_checkpoint_dir, exp_name)
