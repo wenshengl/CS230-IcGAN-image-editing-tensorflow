@@ -5,19 +5,19 @@ from tensorflow.contrib.layers.python.layers import batch_norm
 def lrelu(x , alpha = 0.01 , name="LeakyReLU"):
     return tf.maximum(x , alpha*x)
 
-def conv2d(x, W , b , strides=2):
+def conv2d(x, W , b , strides=2, padding_ = 'SAME'):
 
     # Conv2D wrapper, with bias and relu activation
-    x = tf.nn.conv2d(x , W , strides=[1, strides , strides, 1], padding='SAME')
+    x = tf.nn.conv2d(x , W , strides=[1, strides , strides, 1], padding= padding_)
     x = tf.nn.bias_add(x, b)
 
     return x
 
-def de_conv(x , W , b , out_shape):
+def de_conv(x , W , b , out_shape, s = [1,2,2,1]):
 
     with tf.name_scope('deconv') as scope:
         deconv = tf.nn.conv2d_transpose(x , W ,
-        out_shape , [1 , 2 , 2 , 1] , padding='SAME', name=None)
+        out_shape , strides = s , padding='SAME', name=None)
         out = tf.nn.bias_add(deconv , b)
         return out
 

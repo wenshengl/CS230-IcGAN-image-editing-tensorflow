@@ -22,9 +22,9 @@ class celebA(object):
     def __init__(self):
 
         self.dataname = "celebA"
-        self.dims = 28 * 28
-        self.shape = [28, 28, 3]
-        self.image_size = 28
+        self.dims = 64 * 64
+        self.shape = [64, 64, 3]
+        self.image_size = 64
 
     def load_celebA(self):
 

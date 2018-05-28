@@ -194,8 +194,7 @@ class Gan_celebA(object):
                     #optimizaiton G
                     _,summary_str = sess.run([opti_G, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
                     summary_writer.add_summary(summary_str , step)
-                    _, summary_str = sess.run([opti_G, summary_op], feed_dict={self.images: realbatch_array, self.z: batch_z, self.y: real_y})
-                    summary_writer.add_summary(summary_str, step)
+
                     batch_num += 1
 
                     if step%1 ==0:
@@ -413,28 +412,26 @@ class Gan_celebA(object):
             print("Test finish!")
 
     def discriminate(self, x_var, y, weights, biases, reuse=False):
-
+        # the first layer; No BN; leaky relu; 
+        conv1 = lrelu(conv2d(x_var, weights['wc1'], biases['bc1']))
+        # concat x_var and y
         y1 =  tf.reshape(y, shape=[self.batch_size, 1, 1, self.y_dim])
-        x_var = conv_cond_concat(x_var, y1)
-        print('x_var',x_var.shape)
-        conv1= lrelu(conv2d(x_var, weights['wc1'], biases['bc1']))
-        print ('conv1', conv1.shape)
         conv1 = conv_cond_concat(conv1, y1)
-        print ('conv1', conv1.shape)
-        conv2= lrelu(batch_normal(conv2d(conv1, weights['wc2'], biases['bc2']), scope='dis_bn1', reuse=reuse))
-        print ('conv2', conv2.shape)
-        conv2 = tf.reshape(conv2, [self.batch_size, -1])
-        print ('conv2', conv2.shape)
-        conv2 = tf.concat([conv2, y], 1)
-        print ('conv2', conv2.shape)
-        fc1 = lrelu(batch_normal(fully_connect(conv2, weights['wc3'], biases['bc3']), scope='dis_bn2', reuse=reuse))
-        print ('fc1', fc1.shape)
-        fc1 = tf.concat([fc1, y], 1)
-        print ('fc1', fc1.shape)
-        #for D
-        output= fully_connect(fc1, weights['wd'], biases['bd'])
-        print ('output', output.shape)
-        return tf.nn.sigmoid(output)
+        #print('x_var',x_var.shape)
+        # the second layer
+        conv2 = lrelu(batch_normal(conv2d(conv1, weights['wc2'], biases['bc2']), scope='dis_bn2', reuse=reuse))
+        #print ('conv2', conv2.shape)
+        # the third layer
+        conv3 = lrelu(batch_normal(conv2d(conv2, weights['wc3'], biases['bc3']), scope='dis_bn3', reuse=reuse))
+        # the fourth layer
+        conv4 = lrelu(batch_normal(conv2d(conv3, weights['wc4'], biases['bc4']), scope='dis_bn4', reuse=reuse))
+        print('conv4', conv4.shape)
+        # the fifth layer, strides ==1 while the default is 2
+        conv5 = tf.nn.sigmoid(conv2d(conv4, weights['wc5'], biases['bc5'], strides=1, padding_='VALID'))
+        print('conv5', conv5.shape)
+        conv5 = tf.squeeze(conv5, [1, 2])
+        
+        return conv5
 
     def encode_z(self, x, weights, biases):
         print('x', x.shape)
@@ -472,49 +469,43 @@ class Gan_celebA(object):
 
     def generate(self, z_var, y, weights, biases):
 
-        #add the first layer
-
+        # concat z_var and y
         z_var = tf.concat([z_var, y], 1)
+        z_var = tf.reshape(z_var, shape=[z_var.shape[0], 1, 1, z_var.shape[1]])
         print('z_var', z_var.shape)
-        d1 = tf.nn.relu(batch_normal(fully_connect(z_var , weights['wd'], biases['bd']) , scope='gen_bn1'))
+        # the first layer
+        d1 = tf.nn.relu(batch_normal(de_conv(z_var, weights['wc1'], biases['bc1'], out_shape=[self.batch_size, 4 , 4 , 512], s=[1,4,4,1]) , scope='gen_bn1'))
         print('d1', d1.shape)
-        #add the second layer
+        d2 = tf.nn.relu(batch_normal(de_conv(d1, weights['wc2'], biases['bc2'], out_shape=[self.batch_size, 8 , 8 , 256]) , scope='gen_bn2'))
+        
+        d3 = tf.nn.relu(batch_normal(de_conv(d2, weights['wc3'], biases['bc3'], out_shape=[self.batch_size, 16 , 16 , 128]) , scope='gen_bn3'))
+        
+        d4 = tf.nn.relu(batch_normal(de_conv(d3, weights['wc4'], biases['bc4'], out_shape=[self.batch_size, 32 , 32 , 64]) , scope='gen_bn4'))
+        
+        d5 = tf.tanh(de_conv(d4, weights['wc5'], biases['bc5'], out_shape=[self.batch_size, 64 , 64 , self.channel]))
+        print('d5', d5.shape)
 
-        d1 = tf.concat([d1, y], 1)
-        print('d1', d1.shape)
-        d2 = tf.nn.relu(batch_normal(fully_connect(d1 , weights['wc1'], biases['bc1']) , scope='gen_bn2'))
-        print('d2', d2.shape)
-        d2 = tf.reshape(d2 , [self.batch_size , 7 , 7 , 128])
-        print('d2', d2.shape)
-        y = tf.reshape(y, shape=[self.batch_size, 1, 1, self.y_dim])
-        print('y', y.shape)
-        d2 = conv_cond_concat(d2, y)
-        print('d2', d2.shape)
-        d3 = tf.nn.relu(batch_normal(de_conv(d2, weights['wc2'], biases['bc2'], out_shape=[self.batch_size, 14 , 14 , 64]) , scope='gen_bn3'))
-        print('d3', d3.shape)
-        d3 = conv_cond_concat(d3, y)
-        print('d3', d3.shape)
-        output = de_conv(d3, weights['wc3'], biases['bc3'], out_shape=[self.batch_size, 28, 28, 3])
-        print('output', output.shape)
-        return tf.nn.sigmoid(output)
+        return d5
 
 
     def get_dis_variables(self):
 
         weights = {
 
-            'wc1': tf.Variable(tf.random_normal([4, 4, 3 + self.y_dim, 64], stddev=0.02), name='dis_w1'),
+            'wc1': tf.Variable(tf.random_normal([4, 4, 3, 64], stddev=0.02), name='dis_w1'),
             'wc2': tf.Variable(tf.random_normal([4, 4, 64 + self.y_dim, 128], stddev=0.02), name='dis_w2'),
-            'wc3': tf.Variable(tf.random_normal([128 * 7 * 7 + self.y_dim, 1024], stddev=0.02), name='dis_w3'),
-            'wd': tf.Variable(tf.random_normal([1024 + self.y_dim, 1], stddev=0.02), name='dis_w4')
+            'wc3': tf.Variable(tf.random_normal([4, 4, 128, 256], stddev=0.02), name='dis_w3'),
+            'wc4': tf.Variable(tf.random_normal([4, 4, 256, 512], stddev=0.02), name='dis_w4'),
+            'wc5': tf.Variable(tf.random_normal([4, 4, 512, 1], stddev=0.02), name='dis_w5')
         }
 
         biases = {
 
             'bc1': tf.Variable(tf.zeros([64]), name='dis_b1'),
             'bc2': tf.Variable(tf.zeros([128]), name='dis_b2'),
-            'bc3': tf.Variable(tf.zeros([1024]), name='dis_b3'),
-            'bd': tf.Variable(tf.zeros([1]), name='dis_b4')
+            'bc3': tf.Variable(tf.zeros([256]), name='dis_b3'),
+            'bc4': tf.Variable(tf.zeros([512]), name='dis_b4'),
+            'bc5': tf.Variable(tf.zeros([1]), name='dis_b5')
         }
 
         return weights, biases
@@ -565,22 +556,25 @@ class Gan_celebA(object):
     def get_gen_variables(self):
 
         # change the third dim of wc3 to self.channel
+        # follow the icgan paper
 
         weights = {
 
-            'wd': tf.Variable(tf.random_normal([self.sample_size+self.y_dim , 1024], stddev=0.02), name='gen_w1'),
-            'wc1': tf.Variable(tf.random_normal([1024 + self.y_dim , 7 * 7 * 128], stddev=0.02), name='gen_w2'),
-            'wc2': tf.Variable(tf.random_normal([4, 4, 64, 128 + self.y_dim], stddev=0.02), name='gen_w3'),
-            'wc3': tf.Variable(tf.random_normal([4, 4, self.channel, 64 + self.y_dim], stddev=0.02), name='gen_w4'),
+            'wc1': tf.Variable(tf.random_normal([4, 4, 512, self.sample_size+self.y_dim], stddev=0.02), name='gen_w1'),
+            'wc2': tf.Variable(tf.random_normal([4, 4, 256, 512], stddev=0.02), name='gen_w2'),
+            'wc3': tf.Variable(tf.random_normal([4, 4, 128, 256], stddev=0.02), name='gen_w3'),
+            'wc4': tf.Variable(tf.random_normal([4, 4, 64, 128], stddev=0.02), name='gen_w4'),
+            'wc5': tf.Variable(tf.random_normal([4, 4, self.channel, 64], stddev=0.02), name='gen_w5')
         }
 
         # change bc3 to self.channel
         biases = {
 
-            'bd': tf.Variable(tf.zeros([1024]), name='gen_b1'),
-            'bc1': tf.Variable(tf.zeros([7 * 7 * 128]), name='gen_b2'),
-            'bc2': tf.Variable(tf.zeros([64]), name='gen_b3'),
-            'bc3': tf.Variable(tf.zeros([self.channel]), name='gen_b4')
+            'bc1': tf.Variable(tf.zeros([512]), name='gen_b1'),
+            'bc2': tf.Variable(tf.zeros([256]), name='gen_b2'),
+            'bc3': tf.Variable(tf.zeros([128]), name='gen_b3'),
+            'bc4': tf.Variable(tf.zeros([64]), name='gen_b4'),
+            'bc5': tf.Variable(tf.zeros([self.channel]), name='gen_b5')
         }
 
         return weights, biases
