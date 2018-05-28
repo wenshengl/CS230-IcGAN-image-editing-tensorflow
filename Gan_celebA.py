@@ -195,6 +195,11 @@ class Gan_celebA(object):
                     _,summary_str = sess.run([opti_G, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
                     summary_writer.add_summary(summary_str , step)
 
+                    # optimizaiton G
+                    _, summary_str = sess.run([opti_G, summary_op],
+                                              feed_dict={self.images: realbatch_array, self.z: batch_z, self.y: real_y})
+                    summary_writer.add_summary(summary_str, step)
+
                     batch_num += 1
 
                     if step%1 ==0:
