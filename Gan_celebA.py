@@ -155,11 +155,12 @@ class Gan_celebA(object):
     def train(self):
 
         # Used for plot loss curve
-        train_D_loss = [];
-        train_G_loss = [];
+        train_D_loss = []
+        train_G_loss = []
 
         opti_D = tf.train.AdamOptimizer(learning_rate=self.learning_rate_dis, beta1=0.5).minimize(self.loss , var_list=self.d_vars)
         opti_G = tf.train.AdamOptimizer(learning_rate=self.learning_rate_gen, beta1=0.5).minimize(self.G_fake_loss, var_list=self.g_vars)
+        # opti_G = tf.train.AdamOptimizer(learning_rate=self.learning_rate_gen, beta1=0.5).minimize(- self.loss, var_list=self.g_vars)
 
         init = tf.global_variables_initializer()
 
@@ -186,7 +187,7 @@ class Gan_celebA(object):
                     step = step + 1
                     realbatch_array, real_y = celebA.getNextBatch(self.ds_train, self.label_y, rand, batch_num,self.batch_size)
 
-                    batch_z = np.random.normal(0, 1 , size=[self.batch_size, self.sample_size])
+                    batch_z = np.random.normal(-1, 1 , size=[self.batch_size, self.sample_size])
 
                     #optimization D
                     _,summary_str = sess.run([opti_D, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
