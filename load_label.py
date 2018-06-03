@@ -21,7 +21,7 @@ with open('./data/list_attr_celeba.txt') as f:
         i += 1
 
         # Note: only for test, 30 datapoints are chosen
-        if i==32:
+        if i==8194:
             break
 
 #print(len(name))
@@ -34,7 +34,7 @@ attr = [8, 9, 15, 20]
 y_train = np.array(y_train)
 y_train = y_train.astype(np.int)
 y_mini = y_train[:, attr]
-np.save('./data/y_mini_attr', y_mini)
+np.save('./data/y4_8192', y_mini)
 
 def visualize(data, index):    
     #print(data[index])

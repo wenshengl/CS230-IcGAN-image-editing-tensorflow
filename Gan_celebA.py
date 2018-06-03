@@ -190,16 +190,18 @@ class Gan_celebA(object):
                     batch_z = np.random.normal(-1, 1 , size=[self.batch_size, self.sample_size])
 
                     #optimization D
-                    _,summary_str = sess.run([opti_D, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
-                    summary_writer.add_summary(summary_str , step)
-                    #optimizaiton G
-                    _,summary_str = sess.run([opti_G, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
-                    summary_writer.add_summary(summary_str , step)
+                    if (step%25==0):
+                        _,summary_str = sess.run([opti_D, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
+                        summary_writer.add_summary(summary_str , step)
+                    else: 
+                        #optimizaiton G
+                        _,summary_str = sess.run([opti_G, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
+                        summary_writer.add_summary(summary_str , step)
 
-                    # optimizaiton G
-                    _, summary_str = sess.run([opti_G, summary_op],
-                                              feed_dict={self.images: realbatch_array, self.z: batch_z, self.y: real_y})
-                    summary_writer.add_summary(summary_str, step)
+                        # optimizaiton G
+                        _, summary_str = sess.run([opti_G, summary_op],
+                                                  feed_dict={self.images: realbatch_array, self.z: batch_z, self.y: real_y})
+                        summary_writer.add_summary(summary_str, step)
 
                     batch_num += 1
 
@@ -418,6 +420,8 @@ class Gan_celebA(object):
             print("Test finish!")
 
     def discriminate(self, x_var, y, weights, biases, reuse=False):
+        keep_prob = 0.4
+        
         # the first layer; No BN; leaky relu; 
         conv1 = lrelu(conv2d(x_var, weights['wc1'], biases['bc1']))
         # concat x_var and y
@@ -425,14 +429,18 @@ class Gan_celebA(object):
         conv1 = conv_cond_concat(conv1, y1)
         #print('x_var',x_var.shape)
         # the second layer
+        conv1 = tf.nn.dropout(conv1, keep_prob)
         conv2 = lrelu(batch_normal(conv2d(conv1, weights['wc2'], biases['bc2']), scope='dis_bn2', reuse=reuse))
         #print ('conv2', conv2.shape)
         # the third layer
+        conv2 = tf.nn.dropout(conv2, keep_prob)
         conv3 = lrelu(batch_normal(conv2d(conv2, weights['wc3'], biases['bc3']), scope='dis_bn3', reuse=reuse))
         # the fourth layer
+        conv3 = tf.nn.dropout(conv3, keep_prob)
         conv4 = lrelu(batch_normal(conv2d(conv3, weights['wc4'], biases['bc4']), scope='dis_bn4', reuse=reuse))
         print('conv4', conv4.shape)
         # the fifth layer, strides ==1 while the default is 2
+        conv4 = tf.nn.dropout(conv4, keep_prob)
         conv5 = tf.nn.sigmoid(conv2d(conv4, weights['wc5'], biases['bc5'], strides=1, padding_='VALID'))
         print('conv5', conv5.shape)
         conv5 = tf.squeeze(conv5, [1, 2])
@@ -477,16 +485,18 @@ class Gan_celebA(object):
 
         # concat z_var and y
         z_var = tf.concat([z_var, y], 1)
+#         d0 = lrelu(batch_normal(fully_connect(z_var, weights['wc0'], biases['bc0']), scope='gen_bn0'))
+#         z_var = tf.reshape(d0, shape=[d0.shape[0], 1, 1, d0.shape[1]])
         z_var = tf.reshape(z_var, shape=[z_var.shape[0], 1, 1, z_var.shape[1]])
         print('z_var', z_var.shape)
         # the first layer
-        d1 = tf.nn.relu(batch_normal(de_conv(z_var, weights['wc1'], biases['bc1'], out_shape=[self.batch_size, 4 , 4 , 512], s=[1,4,4,1]) , scope='gen_bn1'))
+        d1 = lrelu(batch_normal(de_conv(z_var, weights['wc1'], biases['bc1'], out_shape=[self.batch_size, 4 , 4 , 512], s=[1,2,2,1], padding_ = 'VALID') , scope='gen_bn1'))
         print('d1', d1.shape)
-        d2 = tf.nn.relu(batch_normal(de_conv(d1, weights['wc2'], biases['bc2'], out_shape=[self.batch_size, 8 , 8 , 256]) , scope='gen_bn2'))
+        d2 = lrelu(batch_normal(de_conv(d1, weights['wc2'], biases['bc2'], out_shape=[self.batch_size, 8 , 8 , 256]) , scope='gen_bn2'))
         
-        d3 = tf.nn.relu(batch_normal(de_conv(d2, weights['wc3'], biases['bc3'], out_shape=[self.batch_size, 16 , 16 , 128]) , scope='gen_bn3'))
+        d3 = lrelu(batch_normal(de_conv(d2, weights['wc3'], biases['bc3'], out_shape=[self.batch_size, 16 , 16 , 128]) , scope='gen_bn3'))
         
-        d4 = tf.nn.relu(batch_normal(de_conv(d3, weights['wc4'], biases['bc4'], out_shape=[self.batch_size, 32 , 32 , 64]) , scope='gen_bn4'))
+        d4 = lrelu(batch_normal(de_conv(d3, weights['wc4'], biases['bc4'], out_shape=[self.batch_size, 32 , 32 , 64]) , scope='gen_bn4'))
         
         d5 = tf.tanh(de_conv(d4, weights['wc5'], biases['bc5'], out_shape=[self.batch_size, 64 , 64 , self.channel]))
         print('d5', d5.shape)
@@ -563,9 +573,12 @@ class Gan_celebA(object):
 
         # change the third dim of wc3 to self.channel
         # follow the icgan paper
+        trial = 1024
 
         weights = {
-
+            
+#             'wc0': tf.Variable(tf.random_normal([self.sample_size+self.y_dim, trial], stddev=0.02), name='gen_w0'),
+#             'wc1': tf.Variable(tf.random_normal([4, 4, 512, trial], stddev=0.02), name='gen_w1'),
             'wc1': tf.Variable(tf.random_normal([4, 4, 512, self.sample_size+self.y_dim], stddev=0.02), name='gen_w1'),
             'wc2': tf.Variable(tf.random_normal([4, 4, 256, 512], stddev=0.02), name='gen_w2'),
             'wc3': tf.Variable(tf.random_normal([4, 4, 128, 256], stddev=0.02), name='gen_w3'),
@@ -575,7 +588,8 @@ class Gan_celebA(object):
 
         # change bc3 to self.channel
         biases = {
-
+            
+            'bc0': tf.Variable(tf.zeros([trial]), name='gen_b0'),   
             'bc1': tf.Variable(tf.zeros([512]), name='gen_b1'),
             'bc2': tf.Variable(tf.zeros([256]), name='gen_b2'),
             'bc3': tf.Variable(tf.zeros([128]), name='gen_b3'),

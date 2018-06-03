@@ -13,11 +13,11 @@ def conv2d(x, W , b , strides=2, padding_ = 'SAME'):
 
     return x
 
-def de_conv(x , W , b , out_shape, s = [1,2,2,1]):
+def de_conv(x , W , b , out_shape, s = [1,2,2,1], padding_ = 'SAME'):
 
     with tf.name_scope('deconv') as scope:
         deconv = tf.nn.conv2d_transpose(x , W ,
-        out_shape , strides = s , padding='SAME', name=None)
+        out_shape , strides = s , padding= padding_, name=None)
         out = tf.nn.bias_add(deconv , b)
         return out
 
