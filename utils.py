@@ -28,10 +28,10 @@ class celebA(object):
 
     def load_celebA(self):
 
-        data = np.load('./data/celebA_img/X_8192.npy')
+        data = np.load('./data/celebA_img/X_8192_crop.npy')
         label = np.load('./data/y40_8192.npy')
 
-        return data, label
+        return data/255., label
 
     @staticmethod
     def getNextBatch(input, input_y, rand, batch_num, batch_size=64):

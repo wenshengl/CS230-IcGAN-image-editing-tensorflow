@@ -190,18 +190,18 @@ class Gan_celebA(object):
                     batch_z = np.random.normal(-1, 1 , size=[self.batch_size, self.sample_size])
 
                     #optimization D
-                    if (step%25==0):
-                        _,summary_str = sess.run([opti_D, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
-                        summary_writer.add_summary(summary_str , step)
-                    else: 
-                        #optimizaiton G
-                        _,summary_str = sess.run([opti_G, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
-                        summary_writer.add_summary(summary_str , step)
 
-                        # optimizaiton G
-                        _, summary_str = sess.run([opti_G, summary_op],
+                    _,summary_str = sess.run([opti_D, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
+                    summary_writer.add_summary(summary_str , step)
+
+                    # optimizaiton G
+                    _, summary_str = sess.run([opti_G, summary_op],
                                                   feed_dict={self.images: realbatch_array, self.z: batch_z, self.y: real_y})
-                        summary_writer.add_summary(summary_str, step)
+                    summary_writer.add_summary(summary_str, step)
+
+                    #optimization D
+#                     _,summary_str = sess.run([opti_D, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
+#                     summary_writer.add_summary(summary_str , step)
 
                     batch_num += 1
 
@@ -420,7 +420,7 @@ class Gan_celebA(object):
             print("Test finish!")
 
     def discriminate(self, x_var, y, weights, biases, reuse=False):
-        keep_prob = 0.4
+        keep_prob = 1
         
         # the first layer; No BN; leaky relu; 
         conv1 = lrelu(conv2d(x_var, weights['wc1'], biases['bc1']))
@@ -490,13 +490,13 @@ class Gan_celebA(object):
         z_var = tf.reshape(z_var, shape=[z_var.shape[0], 1, 1, z_var.shape[1]])
         print('z_var', z_var.shape)
         # the first layer
-        d1 = lrelu(batch_normal(de_conv(z_var, weights['wc1'], biases['bc1'], out_shape=[self.batch_size, 4 , 4 , 512], s=[1,2,2,1], padding_ = 'VALID') , scope='gen_bn1'))
+        d1 = tf.nn.relu(batch_normal(de_conv(z_var, weights['wc1'], biases['bc1'], out_shape=[self.batch_size, 4 , 4 , 512], s=[1,2,2,1], padding_ = 'VALID') , scope='gen_bn1'))
         print('d1', d1.shape)
-        d2 = lrelu(batch_normal(de_conv(d1, weights['wc2'], biases['bc2'], out_shape=[self.batch_size, 8 , 8 , 256]) , scope='gen_bn2'))
+        d2 = tf.nn.relu(batch_normal(de_conv(d1, weights['wc2'], biases['bc2'], out_shape=[self.batch_size, 8 , 8 , 256]) , scope='gen_bn2'))
         
-        d3 = lrelu(batch_normal(de_conv(d2, weights['wc3'], biases['bc3'], out_shape=[self.batch_size, 16 , 16 , 128]) , scope='gen_bn3'))
+        d3 = tf.nn.relu(batch_normal(de_conv(d2, weights['wc3'], biases['bc3'], out_shape=[self.batch_size, 16 , 16 , 128]) , scope='gen_bn3'))
         
-        d4 = lrelu(batch_normal(de_conv(d3, weights['wc4'], biases['bc4'], out_shape=[self.batch_size, 32 , 32 , 64]) , scope='gen_bn4'))
+        d4 = tf.nn.relu(batch_normal(de_conv(d3, weights['wc4'], biases['bc4'], out_shape=[self.batch_size, 32 , 32 , 64]) , scope='gen_bn4'))
         
         d5 = tf.tanh(de_conv(d4, weights['wc5'], biases['bc5'], out_shape=[self.batch_size, 64 , 64 , self.channel]))
         print('d5', d5.shape)
