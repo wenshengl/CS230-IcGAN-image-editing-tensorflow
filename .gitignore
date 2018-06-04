@@ -1,3 +1,6 @@
-
+.env/
+*.pyc
 *.icloud
+*.npy
+*.DS_Store
 *.png
