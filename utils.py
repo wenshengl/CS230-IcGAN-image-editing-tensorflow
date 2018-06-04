@@ -4,7 +4,7 @@ import numpy as np
 import scipy
 import scipy.misc
 import matplotlib.pyplot as plt
-
+import random
 
 def mkdir_p(path):
 
@@ -181,7 +181,11 @@ def sample_label_celebA():
     label_vector = np.zeros((num, feature), dtype=np.float)
     for i in range(0, num):
         for j in range(0, feature):
-            label_vector[i, j] = 0
+            a = random.uniform(0, 1)
+            if a > 0.5:
+                label_vector[i, j] = 1
+            else:
+                label_vector[i, j] = -1
 
     return label_vector
 

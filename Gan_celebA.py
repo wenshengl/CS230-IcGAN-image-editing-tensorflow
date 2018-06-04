@@ -181,6 +181,7 @@ class Gan_celebA(object):
 
                 rand = np.random.randint(0, 100)
                 rand = 0
+                D_flag = True
 
                 while batch_num < len(self.ds_train)/self.batch_size:
 
@@ -189,25 +190,30 @@ class Gan_celebA(object):
 
                     batch_z = np.random.normal(-1, 1 , size=[self.batch_size, self.sample_size])
 
-                    #optimization D
 
-                    _,summary_str = sess.run([opti_D, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
-                    summary_writer.add_summary(summary_str , step)
-
+                    
+                    #for i in range(2):
                     # optimizaiton G
                     _, summary_str = sess.run([opti_G, summary_op],
-                                                  feed_dict={self.images: realbatch_array, self.z: batch_z, self.y: real_y})
+                                              feed_dict={self.images: realbatch_array, self.z: batch_z, self.y: real_y})
                     summary_writer.add_summary(summary_str, step)
-
-                    #optimization D
-#                     _,summary_str = sess.run([opti_D, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
-#                     summary_writer.add_summary(summary_str , step)
+                    
+                    if D_flag:   
+                        #for i in range(3):
+                        # optimization D
+                        _,summary_str = sess.run([opti_D, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
+                        summary_writer.add_summary(summary_str , step)
+                                        
 
                     batch_num += 1
 
                     if step%1 ==0:
 
                         D_loss = sess.run(self.loss, feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
+                        if D_loss < 0.7:
+                            D_flag = False
+                        else:
+                            D_flag = True
                         fake_loss = sess.run(self.G_fake_loss, feed_dict={self.z : batch_z, self.y:real_y})
                         print("EPOCH %d step %d: D: loss = %.7f G: loss=%.7f " % (e, step , D_loss, fake_loss))
 
@@ -453,7 +459,7 @@ class Gan_celebA(object):
         print('c1', c1.shape)
         c2 = tf.nn.relu(batch_normal(conv2d(c1, weights['e2'], biases['eb2']), scope='enz_bn2'))
         print('c2', c2.shape)
-        c2 = tf.reshape(c2, [self.batch_size, 128*7*7])
+        c2 = tf.reshape(c2, [self.batch_size, 128*16*16])
         print('c2', c2.shape)
         #using tanh instead of tf.nn.relu.
         result_z = batch_normal(fully_connect(c2, weights['e3'], biases['eb3']), scope='enz_bn3')
@@ -535,7 +541,7 @@ class Gan_celebA(object):
             'e1': tf.Variable(tf.random_normal([4, 4, self.channel, 64], stddev=0.02), name='enz_w1'),
             'e2': tf.Variable(tf.random_normal([4, 4, 64, 128], stddev=0.02), name='enz_w2'),
              ##z
-            'e3': tf.Variable(tf.random_normal([128 * 7 * 7, self.sample_size], stddev=0.02), name='enz_w3')
+            'e3': tf.Variable(tf.random_normal([128 * 16 * 16, self.sample_size], stddev=0.02), name='enz_w3')
         }
 
         biases = {
