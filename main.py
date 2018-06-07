@@ -148,7 +148,9 @@ if __name__ == "__main__":
         print("Training VAE-encoder")
         IcGAN.train_vae_ez()
 
-    else OPER_FLAG == 5:
+    elif OPER_FLAG == 5:
         print("This is test of VAE-IcGAN")     
 
+    else: 
+        print('Wrong OPER_FLAG input')
 
