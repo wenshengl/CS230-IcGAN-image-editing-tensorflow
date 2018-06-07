@@ -67,8 +67,9 @@ if __name__ == "__main__":
     elif OPER_FLAG == 4:
         build_model_flag = 4
 
-    else OPER_FLAG == 5:
+    elif OPER_FLAG == 5:
         build_model_flag = 5
+    
 
     # batch_size = 1
     max_epoch = 20
