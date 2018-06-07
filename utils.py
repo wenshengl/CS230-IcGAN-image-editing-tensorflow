@@ -7,7 +7,13 @@ import matplotlib.pyplot as plt
 import random
 
 def mkdir_p(path):
-
+    '''
+    Create a directory for
+    @ args:
+        os path
+    @ return:
+        None
+    '''
     try:
         os.makedirs(path)
     except OSError as exc:  # Python >2.5
@@ -15,7 +21,6 @@ def mkdir_p(path):
             print('Path already exists.')
         else:
             raise
-
 
 class celebA(object):
 
@@ -31,6 +36,7 @@ class celebA(object):
         data = np.load('./data/celebA_img/X_8192_crop.npy')
         label = np.load('./data/y40_8192.npy')
 
+        # #QUSIONT# why not divide later?
         return data/255., label
 
     @staticmethod
@@ -90,14 +96,27 @@ class MnistData(object):
 
     @staticmethod
     def getNextBatch(input, input_y, rand, batch_num, batch_size=64):
-        return input[rand + (batch_num) * batch_size: rand + (batch_num + 1)*batch_size], \
-               input_y[rand + (batch_num) * batch_size: rand + (batch_num + 1) * batch_size]
+        '''
+        @ args: 
+            rand: a start point of selecting batch
+        @ return:
+            return a batch, shape of [ [b, h, w, channel], [b,10] ]
+        '''
+
+        end = rand + (batch_num + 1)*batch_size
+
+        if rand + (batch_num + 1)*batch_size > input.shape[0]:
+            end = input.shape[0] + 1
+
+        return input[rand + (batch_num) * batch_size: end], \
+               input_y[rand + (batch_num) * batch_size: end]
 
 def get_image(image_path, is_grayscale=False):
     return np.array(inverse_transform(imread(image_path, is_grayscale)))
 
 def save_images(images, size, image_path):
-    return imsave(inverse_transform(images), size, image_path)
+    #return imsave(inverse_transform(images), size, image_path)
+    return imsave(images, size, image_path)
 
 def save_images_single(image, image_path):
     return scipy.misc.imsave(image_path, image)
@@ -122,6 +141,9 @@ def merge(images, size):
     return img
 
 def inverse_transform(image):
+    '''
+    inversely transform a (-1,1) scale to (0,1) scale
+    '''
     return (image + 1.) / 2.
 
 def read_image_list(category):
@@ -188,8 +210,3 @@ def sample_label_celebA():
                 label_vector[i, j] = -1
 
     return label_vector
-
-
-
-
-
