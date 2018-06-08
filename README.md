@@ -19,8 +19,6 @@ Replace `<FLAG>` with
 `2` to train encoder y of IcGAN
 `3` to test IcGAN
 `4` to train VAE encoder z
-`5` to test VAE-IcGAN
-
 
 3. Results
 View the results in sample/celebA_gan or sampele/mnist_gan folder.
