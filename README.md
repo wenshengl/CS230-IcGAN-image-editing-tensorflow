@@ -8,7 +8,7 @@ Put MNIST and preprocessed celebA .npy files into data folder
 Modify the corresponding params.json file inside the experiments/base_model/ folder.
 
 To train on MNIST dataset:
-python main.py --OPER_FLAG <FLAG>`
+`python main.py --OPER_FLAG <FLAG>`
 
 To train on celebA dataset:
 `python main.py --OPER_FLAG <FLAG> --celebA 1`
