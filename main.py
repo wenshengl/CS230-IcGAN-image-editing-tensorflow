@@ -13,7 +13,7 @@ flags = tf.app.flags
 
 flags.DEFINE_integer("OPER_FLAG" , 1 , "the flag of  opertion")
 flags.DEFINE_integer("extend" , 1 , "contional value y")
-flags.DEFINE_integer("celebA", 1, 'Choose celebA dataset')
+flags.DEFINE_integer("celebA", 0, 'Choose celebA dataset')
 flags.DEFINE_integer("VAE", 1, 'Choose VAE-GAN model')
 
 FLAGS = flags.FLAGS
@@ -64,9 +64,11 @@ if __name__ == "__main__":
 
         build_model_flag = 3
 
+    # training encoder Z
     elif OPER_FLAG == 4:
         build_model_flag = 4
 
+    # predict vae-gan
     elif OPER_FLAG == 5:
         build_model_flag = 5
     
