@@ -35,9 +35,14 @@ class celebA(object):
 
         data = np.load('./data/celebA_img/X_8192_crop.npy')
         label = np.load('./data/y40_8192.npy')
+        
+        # normalize to 0~1
+        data = data / 255.
+        # normalize to -1~1
+        data = data * 2 - 1
 
         # #QUSIONT# why not divide later?
-        return data/255., label
+        return data, label
 
     @staticmethod
     def getNextBatch(input, input_y, rand, batch_num, batch_size=64):
@@ -116,7 +121,7 @@ def get_image(image_path, is_grayscale=False):
 
 def save_images(images, size, image_path):
     #return imsave(inverse_transform(images), size, image_path)
-    return imsave(images, size, image_path)
+    return imsave(images*255, size, image_path)
 
 def save_images_single(image, image_path):
     return scipy.misc.imsave(image_path, image)

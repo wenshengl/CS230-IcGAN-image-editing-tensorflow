@@ -181,14 +181,13 @@ class Gan_celebA(object):
 
                 rand = np.random.randint(0, 100)
                 rand = 0
-                D_flag = True
 
                 while batch_num < len(self.ds_train)/self.batch_size:
 
                     step = step + 1
                     realbatch_array, real_y = celebA.getNextBatch(self.ds_train, self.label_y, rand, batch_num,self.batch_size)
 
-                    batch_z = np.random.normal(-1, 1 , size=[self.batch_size, self.sample_size])
+                    batch_z = np.random.normal(0, 1 , size=[self.batch_size, self.sample_size])
 
 
                     
@@ -198,11 +197,10 @@ class Gan_celebA(object):
                                               feed_dict={self.images: realbatch_array, self.z: batch_z, self.y: real_y})
                     summary_writer.add_summary(summary_str, step)
                     
-                    if D_flag:   
                         #for i in range(3):
                         # optimization D
-                        _,summary_str = sess.run([opti_D, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
-                        summary_writer.add_summary(summary_str , step)
+                    _,summary_str = sess.run([opti_D, summary_op], feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
+                    summary_writer.add_summary(summary_str , step)
                                         
 
                     batch_num += 1
@@ -210,10 +208,6 @@ class Gan_celebA(object):
                     if step%1 ==0:
 
                         D_loss = sess.run(self.loss, feed_dict={self.images:realbatch_array, self.z: batch_z, self.y:real_y})
-                        if D_loss < 0.7:
-                            D_flag = False
-                        else:
-                            D_flag = True
                         fake_loss = sess.run(self.G_fake_loss, feed_dict={self.z : batch_z, self.y:real_y})
                         print("EPOCH %d step %d: D: loss = %.7f G: loss=%.7f " % (e, step , D_loss, fake_loss))
 
@@ -426,7 +420,7 @@ class Gan_celebA(object):
             print("Test finish!")
 
     def discriminate(self, x_var, y, weights, biases, reuse=False):
-        keep_prob = 1
+        keep_prob = 0.8
         
         # the first layer; No BN; leaky relu; 
         conv1 = lrelu(conv2d(x_var, weights['wc1'], biases['bc1']))
@@ -459,7 +453,11 @@ class Gan_celebA(object):
         print('c1', c1.shape)
         c2 = tf.nn.relu(batch_normal(conv2d(c1, weights['e2'], biases['eb2']), scope='enz_bn2'))
         print('c2', c2.shape)
-        c2 = tf.reshape(c2, [self.batch_size, 128*16*16])
+        c3 = tf.nn.relu(batch_normal(conv2d(c2, weights['e3'], biases['eb3']), scope='enz_bn3'))
+        print('c3', c3.shape)
+        c4 = tf.nn.relu(batch_normal(conv2d(c3, weights['e4'], biases['eb4']), scope='enz_bn4'))
+        print('c4', c4.shape)
+        c4 = tf.reshape(c3, [self.batch_size, 128*16*16])
         print('c2', c2.shape)
         #using tanh instead of tf.nn.relu.
         result_z = batch_normal(fully_connect(c2, weights['e3'], biases['eb3']), scope='enz_bn3')
@@ -479,7 +477,7 @@ class Gan_celebA(object):
 
         c2 = tf.nn.relu(batch_normal(conv2d(c1, weights['e2'], biases['eb2']), scope='eny_bn2'))
 
-        c2 = tf.reshape(c2, [self.batch_size, 128 * 7 * 7])
+        c2 = tf.reshape(c2, [self.batch_size, 128 * 16 * 16])
 
         result_y = tf.nn.sigmoid(fully_connect(c2, weights['e3'], biases['eb3']))
 
@@ -488,20 +486,25 @@ class Gan_celebA(object):
         return result_y
 
     def generate(self, z_var, y, weights, biases):
-
+        g_prob = 1
+        
         # concat z_var and y
         z_var = tf.concat([z_var, y], 1)
-#         d0 = lrelu(batch_normal(fully_connect(z_var, weights['wc0'], biases['bc0']), scope='gen_bn0'))
-#         z_var = tf.reshape(d0, shape=[d0.shape[0], 1, 1, d0.shape[1]])
-        z_var = tf.reshape(z_var, shape=[z_var.shape[0], 1, 1, z_var.shape[1]])
+        d0 = lrelu(batch_normal(fully_connect(z_var, weights['wc0'], biases['bc0']), scope='gen_bn0'))
+        z_var = tf.reshape(d0, shape=[d0.shape[0], 1, 1, d0.shape[1]])
+#         z_var = tf.reshape(z_var, shape=[z_var.shape[0], 1, 1, z_var.shape[1]])
         print('z_var', z_var.shape)
         # the first layer
+        z_var = tf.nn.dropout(z_var, g_prob)
         d1 = tf.nn.relu(batch_normal(de_conv(z_var, weights['wc1'], biases['bc1'], out_shape=[self.batch_size, 4 , 4 , 512], s=[1,2,2,1], padding_ = 'VALID') , scope='gen_bn1'))
         print('d1', d1.shape)
+        d1 = tf.nn.dropout(d1, g_prob)
         d2 = tf.nn.relu(batch_normal(de_conv(d1, weights['wc2'], biases['bc2'], out_shape=[self.batch_size, 8 , 8 , 256]) , scope='gen_bn2'))
         
+        d2 = tf.nn.dropout(d2, g_prob)
         d3 = tf.nn.relu(batch_normal(de_conv(d2, weights['wc3'], biases['bc3'], out_shape=[self.batch_size, 16 , 16 , 128]) , scope='gen_bn3'))
         
+        d3 = tf.nn.dropout(d3, g_prob)
         d4 = tf.nn.relu(batch_normal(de_conv(d3, weights['wc4'], biases['bc4'], out_shape=[self.batch_size, 32 , 32 , 64]) , scope='gen_bn4'))
         
         d5 = tf.tanh(de_conv(d4, weights['wc5'], biases['bc5'], out_shape=[self.batch_size, 64 , 64 , self.channel]))
@@ -511,22 +514,24 @@ class Gan_celebA(object):
 
 
     def get_dis_variables(self):
-
+        
+        p = 128
+        
         weights = {
 
-            'wc1': tf.Variable(tf.random_normal([4, 4, 3, 64], stddev=0.02), name='dis_w1'),
-            'wc2': tf.Variable(tf.random_normal([4, 4, 64 + self.y_dim, 128], stddev=0.02), name='dis_w2'),
-            'wc3': tf.Variable(tf.random_normal([4, 4, 128, 256], stddev=0.02), name='dis_w3'),
-            'wc4': tf.Variable(tf.random_normal([4, 4, 256, 512], stddev=0.02), name='dis_w4'),
-            'wc5': tf.Variable(tf.random_normal([4, 4, 512, 1], stddev=0.02), name='dis_w5')
+            'wc1': tf.Variable(tf.random_normal([4, 4, 3, p], stddev=0.02), name='dis_w1'),
+            'wc2': tf.Variable(tf.random_normal([4, 4, p + self.y_dim, p*2], stddev=0.02), name='dis_w2'),
+            'wc3': tf.Variable(tf.random_normal([4, 4, p*2, p*4], stddev=0.02), name='dis_w3'),
+            'wc4': tf.Variable(tf.random_normal([4, 4, p*4, p*8], stddev=0.02), name='dis_w4'),
+            'wc5': tf.Variable(tf.random_normal([4, 4, p*8, 1], stddev=0.02), name='dis_w5')
         }
 
         biases = {
 
-            'bc1': tf.Variable(tf.zeros([64]), name='dis_b1'),
-            'bc2': tf.Variable(tf.zeros([128]), name='dis_b2'),
-            'bc3': tf.Variable(tf.zeros([256]), name='dis_b3'),
-            'bc4': tf.Variable(tf.zeros([512]), name='dis_b4'),
+            'bc1': tf.Variable(tf.zeros([p]), name='dis_b1'),
+            'bc2': tf.Variable(tf.zeros([p*2]), name='dis_b2'),
+            'bc3': tf.Variable(tf.zeros([p*4]), name='dis_b3'),
+            'bc4': tf.Variable(tf.zeros([p*8]), name='dis_b4'),
             'bc5': tf.Variable(tf.zeros([1]), name='dis_b5')
         }
 
@@ -538,18 +543,22 @@ class Gan_celebA(object):
         # change 2nd dim of e3 to self.sample_size
         weights = {
 
-            'e1': tf.Variable(tf.random_normal([4, 4, self.channel, 64], stddev=0.02), name='enz_w1'),
-            'e2': tf.Variable(tf.random_normal([4, 4, 64, 128], stddev=0.02), name='enz_w2'),
+            'e1': tf.Variable(tf.random_normal([5, 5, self.channel, 32], stddev=0.02), name='enz_w1'),
+            'e2': tf.Variable(tf.random_normal([5, 5, 32, 64], stddev=0.02), name='enz_w2'),
+            'e3': tf.Variable(tf.random_normal([5, 5, 64, 128], stddev=0.02), name='enz_w3'),
+            'e4': tf.Variable(tf.random_normal([5, 5, 128,256], stddev=0.02), name='enz_w4'),
              ##z
             'e3': tf.Variable(tf.random_normal([128 * 16 * 16, self.sample_size], stddev=0.02), name='enz_w3')
         }
 
         biases = {
 
-            'eb1': tf.Variable(tf.zeros([64]), name='enz_b1'),
-            'eb2': tf.Variable(tf.zeros([128]), name='enz_b2'),
+            'eb1': tf.Variable(tf.zeros([32]), name='enz_b1'),
+            'eb2': tf.Variable(tf.zeros([64]), name='enz_b2'),
+            'eb3': tf.Variable(tf.zeros([128]), name='enz_b1'),
+            'eb4': tf.Variable(tf.zeros([256]), name='enz_b2'),
              ##z
-            'eb3': tf.Variable(tf.zeros([self.sample_size]), name='enz_b3')
+            'eb5': tf.Variable(tf.zeros([self.sample_size]), name='enz_b3')
         }
 
         return weights, biases
@@ -562,7 +571,7 @@ class Gan_celebA(object):
 
             'e1': tf.Variable(tf.random_normal([4, 4, self.channel, 64], stddev=0.02), name='eny_w1'),
             'e2': tf.Variable(tf.random_normal([4, 4, 64, 128], stddev=0.02), name='eny_w2'),
-            'e3': tf.Variable(tf.random_normal([128 * 7 * 7, self.y_dim], stddev=0.02), name='eny_w4')
+            'e3': tf.Variable(tf.random_normal([128 * 16 * 16, self.y_dim], stddev=0.02), name='eny_w4')
         }
 
         # change eb3
@@ -583,9 +592,9 @@ class Gan_celebA(object):
 
         weights = {
             
-#             'wc0': tf.Variable(tf.random_normal([self.sample_size+self.y_dim, trial], stddev=0.02), name='gen_w0'),
-#             'wc1': tf.Variable(tf.random_normal([4, 4, 512, trial], stddev=0.02), name='gen_w1'),
-            'wc1': tf.Variable(tf.random_normal([4, 4, 512, self.sample_size+self.y_dim], stddev=0.02), name='gen_w1'),
+            'wc0': tf.Variable(tf.random_normal([self.sample_size+self.y_dim, trial], stddev=0.02), name='gen_w0'),
+            'wc1': tf.Variable(tf.random_normal([4, 4, 512, trial], stddev=0.02), name='gen_w1'),
+            #'wc1': tf.Variable(tf.random_normal([4, 4, 512, self.sample_size+self.y_dim], stddev=0.02), name='gen_w1'),
             'wc2': tf.Variable(tf.random_normal([4, 4, 256, 512], stddev=0.02), name='gen_w2'),
             'wc3': tf.Variable(tf.random_normal([4, 4, 128, 256], stddev=0.02), name='gen_w3'),
             'wc4': tf.Variable(tf.random_normal([4, 4, 64, 128], stddev=0.02), name='gen_w4'),
