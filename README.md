@@ -1,10 +1,10 @@
 # cs230-VAE-IcGAN-image-editing
 Course project for CS230, modified IcGAN by combining GAN and VAE
 
-1. Data
+1. Data:
 Put MNIST and preprocessed celebA .npy files into data folder
 
-2. Experiments
+2. Experiments:
 Modify the corresponding params.json file inside the experiments/base_model/ folder.
 
 To train on MNIST dataset:
@@ -19,7 +19,7 @@ Replace `<FLAG>` with
 `2` to train encoder y of IcGAN
 `3` to test IcGAN
 
-3. Results
+3. Results:
 View the results in sample/celebA_gan or sampele/mnist_gan folder.
 
 4. Tensorboard
