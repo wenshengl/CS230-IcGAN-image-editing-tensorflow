@@ -1,5 +1,5 @@
-# cs230-VAE-IcGAN-image-editing
-Course project for CS230, modified IcGAN by combining GAN and VAE
+# cs230-IcGAN-image-editing-tensorflow
+Course project for CS230, implemented IcGAN on MNIST and celebA
 
 1. Data:
 Put MNIST and preprocessed celebA .npy files into data folder
