@@ -27,8 +27,10 @@ run tensorboardx:
 
 `tensorboard --logdir=<'path_to_log'>`
 
+## Reference code
 
-  
+[DCGAN](https://github.com/carpedm20/DCGAN-tensorflow)
+[IcGAN](https://github.com/zhangqianhui/ICGan-tensorflow)  
 
 
 
